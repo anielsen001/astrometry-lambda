@@ -1,0 +1,27 @@
+#+TITLE: Create astrometry.net AWS lambda function
+
+* Background
+
+[[Astrometry.net][aastrometry.net]] is a star-field plate solver. Please see their site for more details. This project takes the astrometry.net code and places into an AWS lambda function. 
+
+* Implemetation
+
+This is still some what of a work in progress. So far, this project implements two layers of a complete AWS lambda function, the astrometry.net software as one layer and a config/index file as another layer. The AWS lambda function needs a wrapper layer to call the solve-field executable. A final version of a python wrapper implementation is still in progress, but a prototype does work. 
+
+The function uses two s3 buckets, and input and output. The input bucket is set to trigger the lambda function when a new file is uploaded. The output bucket is set via environment variable. Output files will be copied there. 
+
+* Astrometry.net layer
+
+The Dockerfile provides a level of configurationm management and uses the Amazon Linux distribution which forms the lambda function container in order to resolve dependencies. 
+
+Important missing functionality is the linux "file" command. The full addition and implmentation of this requires the lambda function to set the MAGIC environment variable to the location of the magic file. Set the variable to MAGIC=/opt/misc/magic
+
+So far, this implementation has been performed using the AWS lambda web interface. Plan to add aws cli implementation with full code in the future. 
+
+* Config/index layer
+
+A second layer hold the config file and index files. Lambda function resource limitations (250MB at most in the code)  mean that only a limited set of index files can be used. The astrometry.cfg file is also in this 2nd layer. This implementation was designed for wide field of view imagery. For smaller FOV's, this limitation may be problematic. 
+
+* Python wrapper layer
+
+AWS Lambda functions need a wrapper layer to call an executable. This implementation will be added next. It can be as simple as os.system( 'solve-field ...'), but code needs to identify the output files and copy them to the output bucket as well (if you want to see the results).
